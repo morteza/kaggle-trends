@@ -9,10 +9,9 @@ import pathlib
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
+import seaborn as sns; sns.set(context='notebook')
 
 pd.set_option("display.precision", 3)
-sns.set(style='ticks')
 
 # scikit learn
 from sklearn.pipeline import Pipeline
@@ -60,7 +59,7 @@ def load_data():
   train_scores_df['is_train'] = True
 
   # combine all features and targets
-  combined_df = train_scores_df.merge(loading_df, on='Id').merge(fnc_df, on='Id', how='left')
+  combined_df = fnc_df.merge(loading_df, on='Id').merge(train_scores_df, on='Id', how='left')
 
   combined_df.fillna(value={'is_train':False}, inplace=True)
 
@@ -70,28 +69,85 @@ def load_data():
 
 
 combined_df, loading_features, fnc_features = load_data()
-targets = list(targets_info.keys())
+target_features = list(targets_info.keys())
 
-st.title('TReNDS Neuroimaging')
 
-col = st.sidebar.selectbox('Select a column to summerize (X)', combined_df.columns)
+def summarize_feature(feats):
+  st.header(f'Feature Summary')
+  st.write(combined_df[feats].describe())
 
-if col:
-  st.header('Column Summary (X)')
-  st.write(combined_df[[col]].describe())
-
-  st.subheader('Distribution')
-  sns.distplot(combined_df[[col]])
+  st.subheader(f'Distribution')
+  for f in feats:
+    sns.distplot(combined_df[[f]])
+  plt.legend(labels=feats)
+  plt.tight_layout()
   st.pyplot()
 
-  col2 = st.sidebar.selectbox('Select a second column (Y)', combined_df.columns)
 
-  if col2:
-    st.header('X/Y Correlation')
-    sns.jointplot(col, col2, data=combined_df, kind="reg", joint_kws = {'scatter_kws': {"alpha": 0.01}})
+st.title('TReNDS Neuroimaging EDA')
+
+##########
+# features
+st.sidebar.header(f'Features ({combined_df.Id.nunique()} subjects)')
+show_sbm = st.sidebar.checkbox(f'SBM ({len(loading_features)} components)')
+show_fnc = st.sidebar.checkbox(f'FNC ({len(fnc_features)} features)')
+show_sm = st.sidebar.checkbox(f'Spatial Maps (53 components)')
+show_targets = st.sidebar.checkbox(f'Targets ({len(target_features)} features)')
+
+##########
+
+
+
+if show_sbm:
+  st.header('SBM')
+
+  st.subheader('Clusters')
+  st.markdown('Note: includes both test and training datasets')
+  feats = loading_features + (target_features if show_targets else [])
+  g = sns.clustermap(combined_df[feats].corr(), cmap='Blues')
+  st.pyplot()
+
+  st.subheader('SBM Loadings')
+
+  train_df = combined_df.query('is_train==True')
+  test_df = combined_df.query('is_train==False')
+
+  f, axes = plt.subplots(ncols=2, figsize=(5, 5))
+  axes[0].set_title('train dataset')
+  sns.violinplot(split=True, inner="quart",orient="h", data=train_df[loading_features], ax=axes[0], linewidth=0.5)
+  
+  axes[1].set_title('test dataset')
+  sns.violinplot(split=True, inner="quart",orient="h", data=test_df[loading_features], ax=axes[1], linewidth=0.5)
+  f.tight_layout()
+  sns.despine(left=True)
+  st.pyplot()
+
+
+if show_targets:
+  st.header('Targets Correlations')
+  f, ax = plt.subplots(figsize=(10, 10))
+  sns.heatmap(combined_df[target_features].corr(), linewidths=.5, annot=True, cmap='Blues', square=True, ax=ax)
+  #ax.set(xlabel='Target Features', ylabel='Target Features')
+  plt.tight_layout()
+  st.pyplot()
+
+st.markdown('<hr>', unsafe_allow_html=True)
+#------
+
+feat_choices = combined_df.columns.difference([] if show_targets else target_features)
+feat_choices = feat_choices.difference([] if show_fnc else fnc_features)
+feat_choices = feat_choices.difference([] if show_sbm else loading_features)
+
+feat1 = st.sidebar.selectbox('Select a feature to summerize', feat_choices)
+
+if feat1:
+
+  feat2 = st.sidebar.selectbox('Select a second feature', feat_choices.difference([feat1]))
+
+  summarize_feature([feat1] + ([feat2] if feat2 else []))
+
+  if feat2:
+
+    st.subheader(f'`{feat1}`-`{feat2}` Correlation')
+    sns.jointplot(feat1, feat2, data=combined_df, kind="reg", joint_kws = {'scatter_kws': {"alpha": 0.01}})
     st.pyplot()
-#
-
-st.header('Loading/Targets Clusters')
-sns.clustermap(combined_df[loading_features + targets].corr())
-st.pyplot()
