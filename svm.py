@@ -34,6 +34,7 @@ from sklearn.svm import SVR
 # 1. load data
 # ----------------
 
+submissions_dir = pathlib.Path('./submissions')
 data_dir = pathlib.Path('./data')
 
 fnc_df = pd.read_csv(data_dir / 'fnc.csv')
@@ -148,12 +149,12 @@ def create_submission(pred, output_file, outcomes=outcomes, sample_submission=sa
     imputer = SimpleImputer()
     submission['Predicted'] = pd.DataFrame(imputer.fit_transform(submission[['Predicted']]))
 
-  submission.to_csv(data_dir / 'submission_svm.csv', index=False, columns=['Id','Predicted'])
+  submission.to_csv(submissions_dir / 'submission_svm.csv', index=False, columns=['Id','Predicted'])
 
   return submission[['Id','Predicted']].sort_values("Id")
 
 
-submission_df = create_submission(test_df, data_dir / 'submission_svm.csv')
+submission_df = create_submission(test_df, submissions_dir / 'submission_svm.csv')
 
 display(submission_df)
 
