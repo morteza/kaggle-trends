@@ -84,7 +84,7 @@ def summarize_feature(feats):
   st.pyplot()
 
 
-st.title('TReNDS Neuroimaging EDA')
+st.title('TReNDS Neuroimaging EDA (May 15)')
 
 ##########
 # features
