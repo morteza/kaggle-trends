@@ -1,2 +1,4 @@
 data/*.csv
 submissions/*.csv
+*.mat
+*.mat.zip
