@@ -12,10 +12,10 @@ from sklearn.model_selection import train_test_split
 
 from IPython.display import display
 
+import tensorflow as tf
 from tensorflow.keras.models import Model, Sequential
-from tensorflow.keras.layers import Input, Flatten
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Input, Flatten, Dense, Conv1D, Embedding, Dropout
+#from tensorflow.keras.layers import Conv1DTranpose
 
 from tensorflow.keras.callbacks import TensorBoard
 
@@ -34,19 +34,24 @@ n_features = len(fnc_df.columns)
 #((trainX, _), (testX, _)) = mnist.load_data()
 X_train, X_test = train_test_split(fnc_df)
 
-X_train = np.expand_dims(X_train, axis=-1)#.reshape(-1,n_features)
-X_test = np.expand_dims(X_test, axis=-1)#.reshape(-1,n_features)
+X_train = np.expand_dims(X_train, axis=-1)
+X_test = np.expand_dims(X_test, axis=-1)
+
 X_train = X_train.astype("float32") / 255.0
 X_test = X_test.astype("float32") / 255.0
 
+dataset = tf.data.Dataset.from_tensor_slices(X_train.values)
 
 model = Sequential([
-  Flatten(input_shape=(n_features,)),
+  #Flatten(input_shape=(n_features,)),
+  Conv1D(128, 3,activation='relu'),
   Dense(units=n_embeddings, activation='relu'),
+  Dropout(0.2),
   Dense(units=n_features, activation='sigmoid')
 ])
 
-model.summary()
+#model.build()
+#model.summary()
 
 
 model.compile(optimizer='adam', loss='mse')
@@ -72,4 +77,4 @@ plt.plot(N, history.history["val_loss"], label="val_loss")
 plt.title("Training Loss and Accuracy")
 plt.xlabel("Epoch #")
 plt.ylabel("Loss/Accuracy")
-plt.legend(loc="lower left")
+plt.legend(loc="upper right")

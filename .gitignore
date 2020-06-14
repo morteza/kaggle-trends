@@ -2,3 +2,7 @@ data/*.csv
 submissions/*.csv
 *.mat
 *.mat.zip
+
+# AutoKeras junks and models
+tmp/
+models/

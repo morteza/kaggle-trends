@@ -174,7 +174,7 @@ def create_submission(pred, output_file, outcomes=outcomes, sample_submission=sa
     imputer = SimpleImputer()
     submission['Predicted'] = pd.DataFrame(imputer.fit_transform(submission[['Predicted']]))
 
-  submission.to_csv(submissions_dir / 'submission_pls.csv', index=False, columns=['Id','Predicted'])
+  submission.to_csv(output_file, index=False, columns=['Id','Predicted'])
 
   return submission[['Id','Predicted']].sort_values("Id")
 
