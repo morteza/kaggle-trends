@@ -84,17 +84,17 @@ import autokeras as ak
 import tensorflow as tf
 
 
-# Initialize the multi-input/multi-task model
-model_inputs = [ak.StructuredDataInput(), ak.StructuredDataInput()]
+# Initialize the single-input/multi-task model
+model_inputs = ak.StructuredDataInput()
 model_outputs = [ak.RegressionHead() for t in targets]
 
 print('compiling the model...')
 model = ak.AutoModel(
-  name='loading_fnc',
+  name='loading',
   directory='tmp/autokeras',
   inputs=model_inputs,
   outputs=model_outputs,
-  max_trials=2)
+  )#max_trials=2)
 
 
 # Fit the model with prepared data.
@@ -102,16 +102,16 @@ print('fitting the model...')
 
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir='./tmp/logs')
 model.fit(
-  [train_df[loading_features],train_df[fnc_features]],
+  train_df[loading_features],
   [train_df[t] for t in targets],
-  epochs=1,
+  #epochs=1,
   callbacks = [tensorboard_callback]
   )
 
 print('fitting finished!')
 
 accuracy = model.evaluate(
-  [train_df[loading_features], train_df[fnc_features]], 
+  train_df[loading_features], 
   [train_df[t] for t in targets]
   )
 
@@ -119,12 +119,12 @@ accuracy = model.evaluate(
 
 
 # save the model
-model.export_model().save("models/autokeras_loading_fnc", save_format="tf")
+model.export_model().save("models/autokeras_loading", save_format="tf")
 
 #tf.keras.utils.plot_model(model, show_shapes=True, expand_nested=True)
 
 # predict: only predict test cohort
-y_pred = model.predict([test_df[loading_features], test_df[fnc_features]])
+y_pred = model.predict(test_df[loading_features])
 
 pred = pd.DataFrame(np.concatenate(y_pred, axis=1))
 #pred.columns = targets
@@ -153,6 +153,6 @@ def create_submission(pred, output_file, targets=targets, sample_submission=samp
   return submission[['Id','Predicted']].sort_values("Id")
 
 
-submission_df = create_submission(test_df, submissions_dir / 'submission_autokeras.csv')
+submission_df = create_submission(test_df, submissions_dir / 'submission_autokeras_loading.csv')
 
 assert submission_df.shape[0] == 29385 # submission rule
