@@ -74,8 +74,8 @@ test_df =  combined_df.query('~(is_train==True)')
 
 #missing_ratio = train_df.isna().sum() * 100 / len(train_df)
 
-# impute all missing targets with -1!!
-train_df = train_df.fillna(-1)
+# impute all missing targets with 0 (let say it's an E2E trick!)
+train_df = train_df.fillna(0)
 
 #%%
 
@@ -94,7 +94,7 @@ model = ak.AutoModel(
   directory='tmp/autokeras',
   inputs=model_inputs,
   outputs=model_outputs,
-  )#max_trials=2)
+  max_trials=10)
 
 
 # Fit the model with prepared data.
@@ -153,6 +153,6 @@ def create_submission(pred, output_file, targets=targets, sample_submission=samp
   return submission[['Id','Predicted']].sort_values("Id")
 
 
-submission_df = create_submission(test_df, submissions_dir / 'submission_autokeras_loading.csv')
+submission_df = create_submission(test_df, submissions_dir / 'submission_autokeras_loading_zero_imputed.csv')
 
 assert submission_df.shape[0] == 29385 # submission rule
