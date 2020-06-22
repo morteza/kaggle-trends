@@ -7,16 +7,17 @@
 #SBATCH --mem=1gb
 # --partition=gpu
 #SBATCH --time=00:01:00
-#SBATCH --output=all_on_gpu_%j.log
+#SBATCH --output=logs/all_on_gpu_%j.log
 
-export LOCAL_MODULES=$HOME/.local/easybuild/modules/all
-
-source module use $LOCAL_MODULES
-source module load tools/EasyBuild
-source module load lang/Miniconda3
+# to enable access to module
+. /etc/profile.d/lmod.sh
 
 
-source conda env create -f environment.yml
-source conda activate kaggle-trends
+#module load tools/EasyBuild
+#module use $HOME/.local/easybuild/modules/all
+#module load lang/Miniconda3
 
-python src/automl_loading.py
+conda env create -f environment.yml
+conda activate kaggle-trends
+
+python workspace/kaggle-trends/src/automl_loading.py
