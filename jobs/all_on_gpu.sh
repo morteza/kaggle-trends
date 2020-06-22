@@ -11,12 +11,12 @@
 
 export LOCAL_MODULES=$HOME/.local/easybuild/modules/all
 
-module use $LOCAL_MODULES
-module load tools/EasyBuild
-module load lang/Miniconda3
+source module use $LOCAL_MODULES
+source module load tools/EasyBuild
+source module load lang/Miniconda3
 
 
-conda env create -f environment.yml
-conda activate kaggle-trends
+source conda env create -f environment.yml
+source conda activate kaggle-trends
 
 python src/automl_loading.py
